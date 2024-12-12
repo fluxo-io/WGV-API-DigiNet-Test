@@ -1,4 +1,4 @@
-# README: DigiNet Versand aus BNHO-Praxen Datenprüfung
+# DigiNet Versand aus BNHO-Praxen Datenprüfung
 
 Diese Anwendung prüft eingehende medizinische Daten im XML-Format auf Vollständigkeit und Konsistenz. Die Prüfungen erfolgen hierarchisch und decken mehrere Ebenen ab. Bei erfolgreicher Prüfung werden die Daten weitergeleitet.
 
