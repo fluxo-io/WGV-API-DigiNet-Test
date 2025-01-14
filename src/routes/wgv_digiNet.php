@@ -118,6 +118,13 @@ foreach ($xml->{"medical-data"}->{"digiNetPlannedVisit"} as $visit) {
                 $no_error = false;
             }
     
+            if (empty($visit->{"visit_digiNetVitalStatus"}->{"weight"}) || $visit->{"visit_digiNetVitalStatus"}->{"weight"} == 0) {
+                unset($visit->{"visit_digiNetVitalStatus"}->{"weight"});
+            } elseif (($visit->{"visit_digiNetVitalStatus"}->{"weight"} > 0 && $visit->{"visit_digiNetVitalStatus"}->{"weight"} <= 20)) {
+                $messages[] = '[Visite: '.$visit->{"diginet-visit-id"}.'] Das Gewicht des Patienten darf nicht kleinergleich 20kg sein."';
+                $no_error = false;
+            }
+
             if (empty($visit->{"digiNetEpro"}->{"ePROFilledSinceLastDigiNetVisit"}) || $visit->{"digiNetEpro"}->{"ePROFilledSinceLastDigiNetVisit"} == '-NA-') {
                 $messages[] = '[Visite: '.$visit->{"diginet-visit-id"}.'] Antwort zu den ePROs fehlt unter "3-Vitalstatus"';
                 $no_error = false;
@@ -141,6 +148,9 @@ foreach ($xml->{"medical-data"}->{"digiNetPlannedVisit"} as $visit) {
     }
 }
 
+
+// XML zurück in einen String konvertieren
+$input_data = $xml->asXML();
 
 if ($no_error) {
     $messages[] = '---------------------';
