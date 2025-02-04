@@ -11,7 +11,7 @@ return [
         'charset' => 'utf8mb4',
     ],
     'api' => [
-        'url' => 'https://nngm-test.medicalsyn.com/api/v1.0/xml/patient', // API-URL
+        'url' => 'https://nngm.medicalsyn.com/api/v1.0/xml/patient', // API-URL
         'ssl_verify' => true, // SSL-Verifizierung
     ],
     'auth' => [
