@@ -6,9 +6,6 @@ $config = require APPROOT . '/config/fluxo.php';
 $api_url = $config['api']['url'];
 $ssl_verify = $config['api']['ssl_verify'];
 
-// Antwortstatus 200 setzen, sonst gibt es einen Fehler im DocCirrus System
-http_response_code(200);
-
 // Eingehende Daten lesen und als xml pharsen
 $input_data = file_get_contents('php://input');
 $xml = simplexml_load_string($input_data);
@@ -197,9 +194,16 @@ if ($no_error) {
     $api_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     
     if (curl_errno($ch)) {
-        error_log("Error sending data to external API: " . curl_error($ch));
+        // error_log("Error sending data to external API: " . curl_error($ch));
+        http_response_code(500);
+        echo json_encode(["error" => "External API communication failed"]);
     } else {
-        error_log("External API response (HTTP Code $api_http_code): " . $api_response);
+        // error_log("External API response (HTTP Code $api_http_code): " . $api_response);
+        http_response_code(200);
     }
+
     curl_close($ch);
+} else {
+    // Antwortstatus 200 setzen, sonst gibt es einen Fehler im DocCirrus System
+    http_response_code(200);
 }
