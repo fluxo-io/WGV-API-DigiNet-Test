@@ -10,6 +10,9 @@ $ssl_verify = $config['api']['ssl_verify'];
 $input_data = file_get_contents('php://input');
 $xml = simplexml_load_string($input_data);
 
+// error_log("External API response (HTTP Code $api_http_code): " . $api_response);
+http_response_code(response_code: 200);
+
 if ($xml === false) {
     $response = [
         "messages" => [
@@ -149,6 +152,37 @@ foreach ($xml->{"medical-data"}->{"digiNetPlannedVisit"} as $visit) {
 // XML zurück in einen String konvertieren
 $input_data = $xml->asXML();
 
+// Daten an api_url weiterleiten, wenn keine Fehler gefunden wurden
+if ($no_error) {
+    $headers = getallheaders();
+    $incoming_api_key = isset($headers['Authorization']) ? $headers['Authorization'] : '';    
+
+    $ch = curl_init($api_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Content-Type: application/xml",
+        "Content-Length: " . strlen($input_data),
+        "Authorization: $incoming_api_key"
+    ]);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $input_data);
+
+    // SSL-Verifizierungsoption basierend auf der Konfiguration setzen
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $ssl_verify);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $ssl_verify ? 2 : 0);
+
+    $api_response = curl_exec($ch);
+    $response = $api_response;
+    $api_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
+    if ($api_http_code > 299) {
+        $messages[] = '(Mainzelliste) Fehler bei indentifizierenden Daten.';
+        $no_error = false;
+    }
+
+    curl_close($ch);
+}
+
 if ($no_error) {
     $messages[] = '---------------------';
     $messages[] = 'Die Daten wurden weiter an das UKK gesendet.';
@@ -170,40 +204,3 @@ $response = [
 
 header('Content-Type: application/json');
 echo json_encode($response);
-
-// Daten an api_url weiterleiten, wenn keine Fehler gefunden wurden
-if ($no_error) {
-    $headers = getallheaders();
-    $incoming_api_key = isset($headers['Authorization']) ? $headers['Authorization'] : '';    
-
-    $ch = curl_init($api_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Content-Type: application/xml",
-        "Content-Length: " . strlen($input_data),
-        "Authorization: $incoming_api_key"
-    ]);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $input_data);
-
-    // SSL-Verifizierungsoption basierend auf der Konfiguration setzen
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $ssl_verify);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $ssl_verify ? 2 : 0);
-
-    $api_response = curl_exec($ch);
-    $api_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-    if (curl_errno($ch)) {
-        // error_log("Error sending data to external API: " . curl_error($ch));
-        http_response_code(500);
-        echo json_encode(["error" => "External API communication failed"]);
-    } else {
-        // error_log("External API response (HTTP Code $api_http_code): " . $api_response);
-        http_response_code(200);
-    }
-
-    curl_close($ch);
-} else {
-    // Antwortstatus 200 setzen, sonst gibt es einen Fehler im DocCirrus System
-    http_response_code(200);
-}
