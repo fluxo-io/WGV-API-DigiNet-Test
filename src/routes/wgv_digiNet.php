@@ -62,8 +62,8 @@ foreach ($xml->{"medical-data"}->{"digiNetPlannedVisit"} as $visit) {
             if (empty($visit->{"visit-data"}->{"digiNetPlannedVisitDate"}) || $visit->{"visit-data"}->{"digiNetPlannedVisitDate"} == '-NA-') {
                 $messages[] = '[Visite: '.$visit->{"diginet-visit-id"}.'] Datum der Visite fehlt unter "3-Therapie-A bis E"';
                 $no_error = false;
-            } elseif ($visit->{"visit-data"}->{"digiNetPlannedVisitDate"} > "2025-04-01") {
-                $messages[] = "[Visite: {$visit->{"diginet-visit-id"}}] Datum der Visite darf nicht nach 01.04.2025 sein";
+            } elseif ($visit->{"visit-data"}->{"digiNetPlannedVisitDate"} > "2025-03-31") {
+                $messages[] = "[Visite: {$visit->{"diginet-visit-id"}}] Datum der Visite darf nicht nach 31.03.2025 sein";
                 $no_error = false;
             }
             if (empty($visit->{"visit-data"}->{"digiNetPlannedVisitEvent"}) || $visit->{"visit-data"}->{"digiNetPlannedVisitEvent"} == '-NA-') {
